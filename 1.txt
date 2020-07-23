@@ -1,0 +1,24 @@
+import requests
+from bs4 import BeautifulSoup
+import re
+import time
+import pymongo
+client = pymongo.MongoClient('localhost',27017)
+book_news = client['news']
+sheet_news = book_news['sheet_news_1']
+url = 'http://www.cntour.cn/'
+headers = {
+    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                 +'Chrome/78.0.3904.108 Safari/537.36X-Requested-With: XMLHttpRequest'
+}
+strhtml = requests.get(url,headers=headers)
+soup = BeautifulSoup(strhtml.text,'lxml')
+data = soup.select('#main > div > div.mtop.firstMod.clearfix > div.centerBox > ul.newsList > li > a')
+for item in data:
+    time.sleep(3)
+    result = {
+        'title':item.get_text(),
+        'link':item.get('href'),
+        'ID':re.findall('\d+',item.get('href'))
+    }
+    sheet_news.insert_one(result)
